@@ -2095,42 +2095,25 @@ blk_qc_t submit_bio(int rw, struct bio *bio)
 {
 	bio->bi_rw |= rw;
 
-	//printk(KERN_ALERT"It's Test!! submit_bio at block/blk_core.c");
-    
     if(!bio){
-        printk(KERN_ALERT"submit_bio bio empty!");
+        //printk(KERN_ALERT"submit_bio bio empty!");
     }
     else if(!bio->bi_bdev){
-        printk(KERN_ALERT"submit_bio bio->bi_bdev empty!");
+        //printk(KERN_ALERT"submit_bio bio->bi_bdev empty!");
     }
     else if(!bio->bi_bdev->bd_super){
-        printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super empty!");
+        //printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super empty!");
     }
     else if(!bio->bi_bdev->bd_super->s_type){
-        printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super->s_type empty!");
+        //printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super->s_type empty!");
     }
     else if(!bio->bi_bdev->bd_super->s_type->name){
-        printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super->s_type->name empty!");
+        //printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super->s_type->name empty!");
     }else{
-        printk(KERN_ALERT"submit_bio File System name! %s", bio->bi_bdev->bd_super->s_type->name);
+        //printk(KERN_ALERT"submit_bio File System name! %s", bio->bi_bdev->bd_super->s_type->name);
+        if(bio -> bi_iter.bi_sector)
+            printk(KERN_ALERT"%s bi_sector: %lu", bio->bi_bdev->bd_super->s_type->name, bio->bi_iter.bi_sector);
     }
-    /*
-    if(bio){
-        printk(KERN_ALERT"submit_bio bio! %p", bio);
-        if(bio->bi_bdev){
-            printk(KERN_ALERT"submit_bio bio->bi_bdev! %p", bio->bi_bdev);
-            if(bio->bi_bdev->bd_super){
-                printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super! %p", bio->bi_bdev->bd_super);
-                if(bio->bi_bdev->bd_super->s_type){
-                    printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super->s_type! %p", bio->bi_bdev->bd_super->s_type);
-                    if(bio->bi_bdev->bd_super->s_type->name){
-                        printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super->s_type->name! %p", bio->bi_bdev->bd_super->s_type->name);
-                    }
-                }
-            }
-        }
-    }*/
-    //bio->bi_bdev->bd_super->s_type->name
 	/*
 	 * If it's a regular read/write or a barrier with data attached,
 	 * go through the normal accounting stuff before submission.
