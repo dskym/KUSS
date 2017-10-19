@@ -40,6 +40,9 @@
 #include "blk.h"
 #include "blk-mq.h"
 
+#include <linux/sched.h>
+#include "sysp.h"
+
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_bio_remap);
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_rq_remap);
 EXPORT_TRACEPOINT_SYMBOL_GPL(block_bio_complete);
@@ -2093,6 +2096,12 @@ EXPORT_SYMBOL(generic_make_request);
  */
 blk_qc_t submit_bio(int rw, struct bio *bio)
 {
+    struct sysp_item item;
+    extern int sysp_qstart;
+    extern int sysp_qend;
+    extern int sysp_qcount;
+    extern const int sysp_qsize;
+
 	bio->bi_rw |= rw;
 
     if(!bio){
@@ -2110,9 +2119,39 @@ blk_qc_t submit_bio(int rw, struct bio *bio)
     else if(!bio->bi_bdev->bd_super->s_type->name){
         //printk(KERN_ALERT"submit_bio bio->bi_bdev->bd_super->s_type->name empty!");
     }else{
-        //printk(KERN_ALERT"submit_bio File System name! %s", bio->bi_bdev->bd_super->s_type->name);
+        //printk(KERN_ALERT"submit_bio File System name! %s"
+        //    , bio->bi_bdev->bd_super->s_type->name);
+
         if(bio -> bi_iter.bi_sector)
-            printk(KERN_ALERT"%s bi_sector: %lu", bio->bi_bdev->bd_super->s_type->name, bio->bi_iter.bi_sector);
+        {
+            //printk("%d", sysp_qcount);
+            if (bio_has_data(bio) && (rw & WRITE)) {
+                //printk(KERN_ALERT"%s sector: %lu"
+                //    , bio->bi_bdev->bd_super->s_type->name
+                //    , bio->bi_iter.bi_sector);
+
+                item.fsname = bio->bi_bdev->bd_super->s_type->name;
+                item.time = sched_clock();
+                item.block_num = bio->bi_iter.bi_sector;
+                printk(KERN_ALERT"fsname: %s, time: %llu, block_num: %lu"
+                    , item.fsname
+                    , item.time
+                    , item.block_num);
+                printk(KERN_ALERT"qstart: %d, qend: %d, qcount: %d, qsize: %d"
+                    , sysp_qstart
+                    , sysp_qend
+                    , sysp_qcount
+                    , sysp_qsize);
+                //item = {
+                //    bio->bi_bdev->bd_super->s_type->name
+                //    , sched_clock()
+                //    , bio->bi_iter.bi_sector
+                //};
+
+                sysp_enqueue(item);
+            }
+        }
+
     }
 	/*
 	 * If it's a regular read/write or a barrier with data attached,
