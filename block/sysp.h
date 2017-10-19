@@ -4,7 +4,7 @@
 #include <linux/mutex.h>
 #include <linux/types.h>
 
-#define SYS_QUEUE_SIZE 1000
+#define SYS_QUEUE_SIZE 10000
 
 
 struct sysp_item {

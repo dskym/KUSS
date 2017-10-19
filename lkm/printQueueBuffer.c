@@ -25,28 +25,32 @@ static ssize_t buffer_read(struct file *file, char __user *user_buffer, size_t c
 	extern struct sysp_item sysp_q[SYS_QUEUE_SIZE];
 	extern int sysp_qstart;
 	extern int sysp_qend;
-	extern int sysp_qcount;
 	extern const int sysp_qsize;
 
-	int index;
+    extern struct mutex sysp_mutex;
+
+	unsigned int index = 0;
 
 	printk(KERN_ALERT "Queue Buffer Read\n");
-	printk(KERN_ALERT "%d\n", count);
 
 	//locking mutex;
-    /*
+    mutex_lock(&sysp_mutex);
+
 	//read queue;
-    for(index = sysp_qstart; (index % sysp_qsize) != sysp_qend; index++) {
-        printk(KERN_ALERT "--- fs name : %s, block num : %lu, time : %llu--- \n"
+	for(index = sysp_qstart; index != sysp_qend; index++) {
+            if(index == sysp_qsize)
+                index %= 1000;
+            printk(KERN_ALERT "--- index : %u, queue start : %u, queue end : %u\n", index, sysp_qstart, sysp_qend);
+        	printk(KERN_ALERT "--- fs name : %s, block num : %lu, time : %llu ---\n"
                 , sysp_q[index].fsname
                 , sysp_q[index].block_num
                 , sysp_q[index].time);
-    }
-    */
+	}
 
 	//unlocking mutex;
+    mutex_unlock(&sysp_mutex);
 
-	return count;
+	return 0;
 }
 
 static const struct file_operations buffer_fops = {
