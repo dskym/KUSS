@@ -30,8 +30,10 @@ static ssize_t buffer_read(struct file *file, char __user *user_buffer, size_t c
     extern struct mutex sysp_mutex;
 
 	unsigned int index = 0;
+    size_t len = 0;
+    const char *format = "index : %u, fs name : %s, block num : %lu, time : %llu\n";
 
-	printk(KERN_ALERT "Queue Buffer Read\n");
+	printk(KERN_ALERT "Queue Buffer Read");
 
 	//locking mutex;
     mutex_lock(&sysp_mutex);
@@ -39,18 +41,23 @@ static ssize_t buffer_read(struct file *file, char __user *user_buffer, size_t c
 	//read queue;
 	for(index = sysp_qstart; index != sysp_qend; index++) {
             if(index == sysp_qsize)
-                index %= 1000;
+                index %= sysp_qsize;
             printk(KERN_ALERT "--- index : %u, queue start : %u, queue end : %u\n", index, sysp_qstart, sysp_qend);
         	printk(KERN_ALERT "--- fs name : %s, block num : %lu, time : %llu ---\n"
                 , sysp_q[index].fsname
                 , sysp_q[index].block_num
                 , sysp_q[index].time);
+            len = sprintf(user_buffer, format
+                    , index
+                    , sysp_q[index].fsname
+                    , sysp_q[index].block_num
+                    , sysp_q[index].time);
 	}
 
 	//unlocking mutex;
     mutex_unlock(&sysp_mutex);
 
-	return 0;
+	return (len == strlen(format))? 0 : len;
 }
 
 static const struct file_operations buffer_fops = {
