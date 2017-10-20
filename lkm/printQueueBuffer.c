@@ -12,33 +12,56 @@
 static struct proc_dir_entry *proc_dir;
 static struct proc_dir_entry *proc_file;
 
+extern struct sysp_item sysp_q[SYS_QUEUE_SIZE];
+extern int sysp_qstart;
+extern int sysp_qend;
+extern const int sysp_qsize;
+
+extern struct mutex sysp_mutex;
+
+unsigned int now = 0;
+
 static int buffer_open(struct inode *inode, struct file *file)
 {
 	printk(KERN_INFO "Proc FileSystem Open.\n");
-	printk(KERN_INFO "Queue Buffer Read Start!\n");
+
+	//locking mutex;
+	printk(KERN_INFO "Mutex Locked!!\n");
+    mutex_lock(&sysp_mutex);
+
+    now = sysp_qstart;
+
 
 	return 0;
 }
 
 static ssize_t buffer_read(struct file *file, char __user *user_buffer, size_t count, loff_t *ppos)
 {
-	extern struct sysp_item sysp_q[SYS_QUEUE_SIZE];
-	extern int sysp_qstart;
-	extern int sysp_qend;
-	extern const int sysp_qsize;
-
-    extern struct mutex sysp_mutex;
-
-	unsigned int index = 0;
     size_t len = 0;
-    const char *format = "index : %u, fs name : %s, block num : %lu, time : %llu\n";
+    const char *format = "qstart: %d, qend: %d, now : %u, fs name : %s, block num : %lu, time : %llu\n";
 
-	printk(KERN_ALERT "Queue Buffer Read");
+    if(now == sysp_qend){
+        return 0;
+    }
 
-	//locking mutex;
-    mutex_lock(&sysp_mutex);
+    len = sprintf(user_buffer, format
+            , sysp_qstart
+            , sysp_qend
+            , now
+            , sysp_q[now].fsname
+            , sysp_q[now].block_num
+            , sysp_q[now].time);
+
+    now++;
+    if(now == SYS_QUEUE_SIZE){
+        now = 0;
+    }
+    return len;
+	//printk(KERN_ALERT "Queue Buffer Read");
+
 
 	//read queue;
+    /*
 	for(index = sysp_qstart; index != sysp_qend; index++) {
             if(index == sysp_qsize)
                 index %= sysp_qsize;
@@ -52,18 +75,27 @@ static ssize_t buffer_read(struct file *file, char __user *user_buffer, size_t c
                     , sysp_q[index].fsname
                     , sysp_q[index].block_num
                     , sysp_q[index].time);
-	}
+	}*/
 
-	//unlocking mutex;
-    mutex_unlock(&sysp_mutex);
 
 	return (len == strlen(format))? 0 : len;
+}
+int buffer_close(struct inode *inode, struct file *file)
+{
+    printk(KERN_ALERT"close!!");
+
+	//unlocking mutex;
+    printk(KERN_ALERT"Mutex Unlocked!!");
+    mutex_unlock(&sysp_mutex);
+
+    return 0;       /* success */
 }
 
 static const struct file_operations buffer_fops = {
 	.owner = THIS_MODULE,
 	.open = buffer_open,
 	.read = buffer_read,
+	.release = buffer_close,
 };
 
 static int __init print_buffer_module_init(void)

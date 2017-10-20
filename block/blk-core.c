@@ -2133,15 +2133,15 @@ blk_qc_t submit_bio(int rw, struct bio *bio)
                 item.fsname = bio->bi_bdev->bd_super->s_type->name;
                 item.time = sched_clock();
                 item.block_num = bio->bi_iter.bi_sector;
-                printk(KERN_ALERT"fsname: %s, time: %llu, block_num: %lu"
-                    , item.fsname
-                    , item.time
-                    , item.block_num);
-                printk(KERN_ALERT"qstart: %d, qend: %d, qcount: %d, qsize: %d"
-                    , sysp_qstart
-                    , sysp_qend
-                    , sysp_qcount
-                    , sysp_qsize);
+                //printk(KERN_ALERT"fsname: %s, time: %llu, block_num: %lu"
+                //    , item.fsname
+                //    , item.time
+                //    , item.block_num);
+                //printk(KERN_ALERT"qstart: %d, qend: %d, qcount: %d, qsize: %d"
+                //    , sysp_qstart
+                //    , sysp_qend
+                //    , sysp_qcount
+                //    , sysp_qsize);
                 //item = {
                 //    bio->bi_bdev->bd_super->s_type->name
                 //    , sched_clock()
