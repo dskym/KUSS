@@ -38,54 +38,32 @@ static int buffer_open(struct inode *inode, struct file *file)
 static ssize_t buffer_read(struct file *file, char __user *user_buffer, size_t count, loff_t *ppos)
 {
     size_t len = 0;
-    const char *format = "qstart: %d, qend: %d, now : %u, fs name : %s, block num : %lu, time : %llu\n";
+    const char *format = "%s\t%lu\t%llu\n";
 
     if(now == sysp_qend){
         return 0;
     }
 
     len = sprintf(user_buffer, format
-            , sysp_qstart
-            , sysp_qend
-            , now
             , sysp_q[now].fsname
             , sysp_q[now].block_num
             , sysp_q[now].time);
 
     now++;
+
     if(now == SYS_QUEUE_SIZE){
         now = 0;
     }
+
     return len;
-	//printk(KERN_ALERT "Queue Buffer Read");
-
-
-	//read queue;
-    /*
-	for(index = sysp_qstart; index != sysp_qend; index++) {
-            if(index == sysp_qsize)
-                index %= sysp_qsize;
-            printk(KERN_ALERT "--- index : %u, queue start : %u, queue end : %u\n", index, sysp_qstart, sysp_qend);
-        	printk(KERN_ALERT "--- fs name : %s, block num : %lu, time : %llu ---\n"
-                , sysp_q[index].fsname
-                , sysp_q[index].block_num
-                , sysp_q[index].time);
-            len = sprintf(user_buffer, format
-                    , index
-                    , sysp_q[index].fsname
-                    , sysp_q[index].block_num
-                    , sysp_q[index].time);
-	}*/
-
-
-	return (len == strlen(format))? 0 : len;
 }
+
 int buffer_close(struct inode *inode, struct file *file)
 {
-    printk(KERN_ALERT"close!!");
+    printk(KERN_ALERT "Proc FileSystem Close.\n");
 
 	//unlocking mutex;
-    printk(KERN_ALERT"Mutex Unlocked!!");
+    printk(KERN_ALERT "Mutex Unlocked!!\n");
     mutex_unlock(&sysp_mutex);
 
     return 0;       /* success */
