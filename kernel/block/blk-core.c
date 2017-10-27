@@ -40,6 +40,13 @@
 #include "blk.h"
 #include "blk-mq.h"
 
+/*
+Author: Choi Changmin
+Date: 17.10.20
+
+include shced.h for check time.
+include sysp.h for using queue
+*/
 #include <linux/sched.h>
 #include "sysp.h"
 
@@ -2096,6 +2103,13 @@ EXPORT_SYMBOL(generic_make_request);
  */
 blk_qc_t submit_bio(int rw, struct bio *bio)
 {
+    /*
+    Author: Choi Changmin
+    Date: 17.10.18 ~ 20
+
+    10.18: Checked fs name and higher struct empty
+    10.20: Checked write? and enqueue information.
+    */
     struct sysp_item item;
     extern int sysp_qstart;
     extern int sysp_qend;
@@ -2137,16 +2151,6 @@ blk_qc_t submit_bio(int rw, struct bio *bio)
                 //    , item.fsname
                 //    , item.time
                 //    , item.block_num);
-                //printk(KERN_ALERT"qstart: %d, qend: %d, qcount: %d, qsize: %d"
-                //    , sysp_qstart
-                //    , sysp_qend
-                //    , sysp_qcount
-                //    , sysp_qsize);
-                //item = {
-                //    bio->bi_bdev->bd_super->s_type->name
-                //    , sched_clock()
-                //    , bio->bi_iter.bi_sector
-                //};
 
                 sysp_enqueue(item);
             }

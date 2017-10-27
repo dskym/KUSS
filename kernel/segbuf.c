@@ -369,6 +369,12 @@ static int nilfs_segbuf_submit_bio(struct nilfs_segment_buffer *segbuf,
 	bio->bi_end_io = nilfs_end_bio_write;
 	bio->bi_private = segbuf;
 
+    /*
+    Author: Kim Seungyoon
+    Date: 17.10.17.
+    
+    Make each block have file system information.
+    */
     bio->bi_bdev->bd_super = segbuf->sb_super;
 
 	submit_bio(mode, bio);

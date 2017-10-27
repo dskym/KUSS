@@ -1,3 +1,18 @@
+/*
+Author: Kim Seungyoon
+Date: 17.10.18 ~ 20
+
+Loadable Kernel Module. proc interface.
+make proc interface at /proc/SystemProgramming/Buffer
+
+Call Order:
+    print_buffer_module_init - insmod module. make proc interface
+        buffer_open - Initialize starting index and lock mutex.
+        buffer_read - Read queue and print to buffer.
+        buffer_close - Unlock mutex.
+    print_buffer_module_exit - rmmod module. remove proc interface
+*/
+
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -9,9 +24,14 @@
 #define PROC_DIRNAME "SystemProgramming"
 #define PROC_FILENAME "Buffer"
 
+//pric_dir, proc_file: for locate proc interface at /SystemProgramming/Buffer
 static struct proc_dir_entry *proc_dir;
 static struct proc_dir_entry *proc_file;
 
+/*
+sysp_q, sysp_qstart, sysp_qend, sysp_qsize, sysp_mutex
+: From kernel/block/sysp.c
+*/
 extern struct sysp_item sysp_q[SYS_QUEUE_SIZE];
 extern int sysp_qstart;
 extern int sysp_qend;
@@ -19,6 +39,7 @@ extern const int sysp_qsize;
 
 extern struct mutex sysp_mutex;
 
+//now: reading index. once proc interface opened, 'now' initialized to 'sysp_qstart'.
 unsigned int now = 0;
 
 static int buffer_open(struct inode *inode, struct file *file)
@@ -37,6 +58,7 @@ static int buffer_open(struct inode *inode, struct file *file)
 
 static ssize_t buffer_read(struct file *file, char __user *user_buffer, size_t count, loff_t *ppos)
 {
+    //len: length of formatted(printed) string.
     size_t len = 0;
     const char *format = "%s\t%lu\t%llu\n";
 
